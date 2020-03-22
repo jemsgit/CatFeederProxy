@@ -1,19 +1,32 @@
 const express = require('express');
+var bodyParser = require('body-parser');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const WebSocket = require('ws');
+const path = require('path');
 
-const wss = new WebSocket.Server({ port: 8084 });
+const config = {
+    wsPort: 8084,
+    host: 'http://localhost',
+    port: 8085
+}
+
+const wss = new WebSocket.Server({ port: config.wsPort });
 let proxyIp = '';
-let app = express();
 let server;
 let wsInst = null;
+let count = 25;
+let app = express();
+app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({ extended: true }))
+
 
 wss.on('connection', ws => {
     wsInst = ws;
     ws.on('message', message => {
         console.log(`Received message => ${message}`);
         proxyIp = message;
-        restartServer();
+        console.log(wss.clients)
+            //restartServer();
     })
 })
 
@@ -33,14 +46,34 @@ function restartServer() {
 
 function setServer() {
     //app.all('*', createProxyMiddleware({ target: proxyIp, changeOrigin: true }));
+    let pageParams = {
+        count: count,
+        mewEndpoint: config.host + ":" + config.port + '/mew',
+        links: [{ text: 'This repo', url: 'https://github.com/jemsgit/CatFeederProxy' },
+            { text: 'Cat Feeder repo', url: 'https://github.com/jemsgit/CatFeeder2' },
+            { text: 'FrontEndDev Telegram channel', url: 'https://t.me/front_end_dev' },
+            { text: 'Web Stack Telegram channel', url: 'https://t.me/web_stack' },
+            { text: 'DrawBot art Telegram channel', url: 'https://t.me/drawbot_art' },
+        ]
+    }
     app.get('/', (req, res) => {
-        wsInst.send('test')
-        return res.send('Received a GET HTTP method');
+        return res.render('index', pageParams);
+    });
+    app.post('/mew', (req, res) => {
+        if (wsInst && req.body.massage) {
+            wsInst.send(req.body.massage)
+        }
+        return res.render('index', pageParams);
     });
     app.get('/feed', (req, res) => {
-        wsInst.send('test')
-        return res.send('Received a GET HTTP method');
+        if (wsInst) {
+            wsInst.send('feed')
+        }
+        count++;
+        return res.send(count.toString());
     });
-    server = app.listen(8085);
+    server = app.listen(config.port);
     console.log('Server restarted!');
 }
+
+setServer();
