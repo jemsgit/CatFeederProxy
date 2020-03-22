@@ -13,7 +13,6 @@ const config = {
 const wss = new WebSocket.Server({ port: config.wsPort });
 let proxyIp = '';
 let server;
-let wsInst = null;
 let count = 25;
 let app = express();
 app.set("view engine", "ejs");
@@ -21,17 +20,14 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 
 wss.on('connection', ws => {
-    wsInst = ws;
     ws.on('message', message => {
         console.log(`Received message => ${message}`);
         proxyIp = message;
-        console.log(wss.clients)
-            //restartServer();
     })
 })
 
 wss.on('close', () => {
-    wsInst = null;
+    console.log('ws closed')
 })
 
 function restartServer() {
@@ -60,15 +56,13 @@ function setServer() {
         return res.render('index', pageParams);
     });
     app.post('/mew', (req, res) => {
-        if (wsInst && req.body.massage) {
-            wsInst.send(req.body.massage)
+        if (req.body.massage) {
+            wss.broadcast(req.body.massage);
         }
         return res.render('index', pageParams);
     });
     app.get('/feed', (req, res) => {
-        if (wsInst) {
-            wsInst.send('feed')
-        }
+        wss.broadcast('feed');
         count++;
         return res.send(count.toString());
     });
