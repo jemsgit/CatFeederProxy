@@ -30,14 +30,12 @@ wss.on('close', () => {
     console.log('ws closed')
 })
 
-function restartServer() {
-    if (server) {
-        server.close(function() {
-            setServer()
-        });
-    } else {
-        setServer();
-    }
+function broadcast(data) {
+    wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(data);
+        }
+    });
 }
 
 function setServer() {
@@ -57,12 +55,12 @@ function setServer() {
     });
     app.post('/mew', (req, res) => {
         if (req.body.massage) {
-            wss.broadcast(req.body.massage);
+            broadcast(req.body.massage);
         }
         return res.render('index', pageParams);
     });
     app.get('/feed', (req, res) => {
-        wss.broadcast('feed');
+        broadcast('feed');
         count++;
         return res.send(count.toString());
     });
