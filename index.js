@@ -11,9 +11,10 @@ const config = {
 }
 
 const wss = new WebSocket.Server({ port: config.wsPort });
-let count = 25;
+let count = 0;
+let lastMews = [{}, {}, {}];
 let app = express();
-app.set("view engine", "ejs");
+app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }))
 
 
@@ -35,27 +36,38 @@ function broadcast(data) {
     });
 }
 
+function hideIp(ip) {
+    if (!ip) {
+        return '****'
+    }
+    return ip.slice(0, 2) + '****' + ip.slice(-2);
+}
+
 function getPageParams() {
     return {
         count: count,
         mewEndpoint: config.host + ":" + config.port + '/',
         links: [{ text: 'This repo', url: 'https://github.com/jemsgit/CatFeederProxy' },
             { text: 'Cat Feeder repo', url: 'https://github.com/jemsgit/CatFeeder2' },
-            { text: 'FrontEndDev Telegram channel', url: 'https://t.me/front_end_dev' },
-            { text: 'Web Stack Telegram channel', url: 'https://t.me/web_stack' },
-            { text: 'DrawBot art Telegram channel', url: 'https://t.me/drawbot_art' },
-        ]
+            { text: 'FrontEndDev Telegram channel', url: 'https://teleg.one/front_end_dev' },
+            { text: 'Web Stack Telegram channel', url: 'https://teleg.one/web_stack' },
+            { text: 'DrawBotArt Telegram channel', url: 'https://teleg.one/drawbot_art' },
+        ],
+        recentMessages: lastMews
     };
 }
 
 function setServer() {
-    //app.all('*', createProxyMiddleware({ target: proxyIp, changeOrigin: true }));
     app.get('/', (req, res) => {
         return res.render('index', getPageParams());
     });
     app.post('/', (req, res) => {
         if (req.body.massage) {
             broadcast(req.body.massage);
+            let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+            console.log(ip)
+            lastMews.unshift({ text: req.body.massage, sender: hideIp(ip) });
+            lastMews = lastMews.slice(0, 3);
         }
         return res.render('index', getPageParams());
     });

@@ -11,11 +11,10 @@
             display: block;
             margin: 0px auto;
             text-align: center;
-            background-color: #6fc3ff;
+            background-color: #39adff;
         }
         
         #container {
-            width: 100%;
             height: 100%;
             margin-left: 5px;
             margin-top: 20px;
@@ -23,7 +22,7 @@
         }
         
         .button {
-            background-color: #4de200;
+            background-color: #005be2;
             border: none;
             font-size: 15px;
             color: white;
@@ -34,7 +33,7 @@
         
         .message {
             display: block;
-            color: white;
+            color: #004888;
             margin: 20px 0;
             font-size: 22px;
         }
@@ -50,7 +49,13 @@
         }
         
         .info {
-            margin-top: 100px;
+            margin-top: 50px;
+            padding-left: 30px;
+            text-align: left;
+        }
+        
+        b {
+            color: #c6e4ff;
         }
         
         ul {
@@ -61,6 +66,12 @@
             list-style: none;
             font-size: 18px;
             margin: 10px;
+        }
+        
+        li a,
+        li a:visited,
+        li span {
+            color: #004888;
         }
     </style>
     <script>
@@ -88,14 +99,25 @@
             <input type="text" name="massage" maxlength="255">
             <input class="button" type="submit" value="Mew">
         </form>
-        <p class="info">
+        <section class="info">
+            <b>Few last messages: </b>
+            <ul>
+                <% for(var i=0; i < recentMessages.length;i++) {%>
+                    <li>
+                        <span class="message-ip"><%=recentMessages[i].sender %></span>
+                        <span class="message-text"><%=recentMessages[i].text %></span>
+                    </li>
+                    <%} %>
+            </ul>
+        </section>
+        <section class="info">
             <b>Visit link for more: </b>
             <ul>
                 <% for(var i=0; i<links.length;i++) {%>
                     <li><a href=<%=links[i].url %>><%=links[i].text %></a></li>
                     <%} %>
             </ul>
-        </p>
+        </section>
     </div>
 </body>
 
