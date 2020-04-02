@@ -1,8 +1,8 @@
 const express = require('express');
 var bodyParser = require('body-parser');
-const { createProxyMiddleware } = require('http-proxy-middleware');
-const WebSocket = require('ws');
-const path = require('path');
+const WS = require('./ws');
+const reqDebug = require('debug')('req');
+const helmet = require('helmet')
 
 const config = {
     wsPort: 8084,
@@ -10,37 +10,31 @@ const config = {
     port: 8085
 }
 
-const wss = new WebSocket.Server({ port: config.wsPort });
 let count = 0;
 let lastMews = [{}, {}, {}];
+
+let urlencodedParser = bodyParser.urlencoded({ extended: true });
+var jsonParser = bodyParser.json();
+
+const ws = new WS(config.wsPort);
 let app = express();
 app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(jsonParser)
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: ["*", "unsafe-inline'"],
+        styleSrc: ["'self'"]
+    }
+}))
+ws.start();
 
-
-wss.on('connection', ws => {
-    ws.on('message', message => {
-        console.log(`Received message => ${message}`);
-    })
-})
-
-wss.on('close', () => {
-    console.log('ws closed');
-})
-
-function broadcast(data) {
-    wss.clients.forEach(function each(client) {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(data);
-        }
-    });
-}
 
 function hideIp(ip) {
     if (!ip) {
         return '****'
     }
-    return ip.slice(0, 2) + '****' + ip.slice(-2);
+    return ip.slice(0, 3) + '****' + ip.slice(-2);
 }
 
 function getPageParams() {
@@ -61,18 +55,108 @@ function setServer() {
     app.get('/', (req, res) => {
         return res.render('index', getPageParams());
     });
-    app.post('/', (req, res) => {
-        if (req.body.massage) {
-            broadcast(req.body.massage);
+    app.post('/', urlencodedParser, (req, res) => {
+        let message = req.body.message;
+        reqDebug('MESSAGE')
+        reqDebug(message)
+        if (message) {
+            ws.broadcast('print-' + message.replace(/[-]/g, '_'));
             let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-            console.log(ip)
-            lastMews.unshift({ text: req.body.massage, sender: hideIp(ip) });
+            lastMews.unshift({ text: message, sender: hideIp(ip) });
             lastMews = lastMews.slice(0, 3);
         }
         return res.render('index', getPageParams());
     });
+    app.get('/time', (req, res) => {
+        reqDebug('get time req')
+        ws.sendData('T-1')
+            .then(function(data) {
+                reqDebug('result');
+                reqDebug(data);
+                res.send(data.toString());
+            })
+            .catch(function(err) {
+                res.send(400)
+            })
+    })
+    app.get('/portion', (req, res) => {
+        reqDebug('get portion req')
+        ws.sendData('P-1')
+            .then(function(data) {
+                reqDebug('result');
+                reqDebug(data);
+                res.send(data.toString());
+            })
+            .catch(function(err) {
+                res.send(400)
+            })
+    })
+    app.get('/alarms', (req, res) => {
+        reqDebug('get alarms req')
+        ws.sendData('as-1')
+            .then(function(data) {
+                reqDebug('result');
+                reqDebug(data);
+                res.send(data.toString());
+            })
+            .catch(function(err) {
+                res.send(400)
+            })
+    })
+    app.post('/time', (req, res) => {
+        reqDebug('set time req');
+        reqDebug(req.body.value);
+        ws.sendData('sT-' + req.body.value)
+            .then(function(data) {
+                reqDebug('result');
+                reqDebug(data);
+                res.send(data.toString());
+            })
+            .catch(function(err) {
+                res.send(400)
+            })
+    })
+    app.post('/addAlarm', (req, res) => {
+        reqDebug('add alarm req');
+        reqDebug(req.body.value);
+        ws.sendData('adA-' + req.body.value)
+            .then(function(data) {
+                reqDebug('result');
+                reqDebug(data);
+                res.send(data.toString());
+            })
+            .catch(function(err) {
+                res.send(400)
+            })
+    })
+    app.post('/deleteAlarm/:id', (req, res) => {
+        reqDebug('delete alarm req');
+        reqDebug(req.params.id);
+        ws.sendData('dA-' + req.params.id)
+            .then(function(data) {
+                reqDebug('result');
+                reqDebug(data);
+                res.send(data.toString());
+            })
+            .catch(function(err) {
+                res.send(400)
+            })
+    })
+    app.post('/portion', (req, res) => {
+        reqDebug('set portion req');
+        reqDebug(req.body.value);
+        ws.sendData('sP-' + req.body.value)
+            .then(function(data) {
+                reqDebug('result');
+                reqDebug(data);
+                res.send(data.toString());
+            })
+            .catch(function(err) {
+                res.send(400)
+            })
+    })
     app.get('/feed', (req, res) => {
-        broadcast('feed');
+        ws.broadcast('f-1');
         count++;
         return res.send(count.toString());
     });

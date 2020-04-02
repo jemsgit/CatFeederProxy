@@ -1,20 +1,24 @@
 {
-  "name": "ws-proxy-catfeed",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "ejs": "^3.0.1",
-    "express": "^4.17.1",
-    "http-proxy-middleware": "^1.0.3",
-    "request": "^2.88.2",
-    "websocket": "^1.0.31",
-    "ws": "^7.2.3"
-  }
+    "name": "ws-proxy-catfeed",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "DEBUG=ws,resolver,req node index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "debug": "^4.1.1",
+        "ejs": "^3.0.1",
+        "express": "^4.17.1",
+        "helmet": "^3.22.0",
+        "http-proxy-middleware": "^1.0.3",
+        "request": "^2.88.2",
+        "shortid": "^2.2.15",
+        "websocket": "^1.0.31",
+        "ws": "^7.2.3"
+    }
 }
