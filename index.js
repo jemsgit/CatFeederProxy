@@ -23,8 +23,9 @@ app.use(jsonParser)
 app.use(helmet.contentSecurityPolicy({
     directives: {
         defaultSrc: ["'self'"],
-        connectSrc: ["*", "unsafe-inline'"],
-        styleSrc: ["'self'"]
+        connectSrc: ["*"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'"]
     }
 }))
 ws.start();
