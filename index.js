@@ -44,9 +44,9 @@ function getPageParams() {
         mewEndpoint: config.host + ":" + config.port + '/',
         links: [{ text: 'This repo', url: 'https://github.com/jemsgit/CatFeederProxy' },
             { text: 'Cat Feeder repo', url: 'https://github.com/jemsgit/CatFeeder2' },
-            { text: 'FrontEndDev Telegram channel', url: 'https://teleg.one/front_end_dev' },
-            { text: 'Web Stack Telegram channel', url: 'https://teleg.one/web_stack' },
-            { text: 'DrawBotArt Telegram channel', url: 'https://teleg.one/drawbot_art' },
+            { text: 'FrontEndDev Tg channel', url: 'https://teleg.one/front_end_dev' },
+            { text: 'Web Stack Tg channel', url: 'https://teleg.one/web_stack' },
+            { text: 'DrawBotArt Tg channel', url: 'https://teleg.one/drawbot_art' },
         ],
         recentMessages: lastMews
     };
@@ -58,7 +58,6 @@ function setServer() {
     });
     app.post('/', urlencodedParser, (req, res) => {
         let message = req.body.message;
-        reqDebug('MESSAGE')
         reqDebug(message)
         if (message) {
             ws.broadcast('print-' + message.replace(/[-]/g, '_'));
